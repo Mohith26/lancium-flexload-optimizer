@@ -61,6 +61,16 @@ Honest reading: the optimizer clearly wins when compute is cheap (lots of curtai
 
 Everything in the UI (`index.html`) is computed in the browser by the same modules, in a Web Worker. No numbers are hard-coded.
 
+## About the UI
+
+Lancium's Smart Response operations software is internal and has no public screenshots, so the screen is built as a new **Flex Participation** tab inside the only Lancium production web app with a public footprint: the **Lancium Compute portal** (portal.lancium.com). The look comes from archived copies of that portal's own application CSS and from in-app screenshots in Lancium's former Compute docs:
+
+- Bootstrap 4.6.2 with Lancium's theme colors: primary `#656c79`, success `#288cd2`, info `#86c6f8`, warning `#143469`, danger `#70161e`, green `#009393`, text `#333`, borders `#ced4da`.
+- Barlow for body text. Montserrat stands in for Gotham, which the portal uses for headings and nav but is a commercial font.
+- Their gradient navbar (opacity .9) with the "blip" notch, crimson active tab, legend-style section labels on bordered containers, job-count style KPIs, `table-sm` with grey day rows, outline buttons, and Open Iconic icons.
+
+The Lancium Compute logo in the navbar is Lancium's trademark. It appears only to show where the feature would live. This is an unofficial concept, not affiliated with Lancium.
+
 ## Run it
 
 ```bash
@@ -85,7 +95,8 @@ No build step, no dependencies beyond Node 18+ for tests and Chart.js from a CDN
 ## Layout
 
 ```
-index.html              ops-console UI (Chart.js from CDN)
+index.html              UI in the Lancium Compute portal shell (Bootstrap 4.6.2 + Chart.js from CDN)
+assets/                 portal logo (Lancium trademark, app-chrome depiction only)
 src/simplex.js          two-phase simplex
 src/model.js            scenarios, hourly CVaR LP, SLA multiplier, RT replay, strategies, backtest
 src/worker.js           runs backtests off the main thread

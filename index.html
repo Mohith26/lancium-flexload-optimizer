@@ -2,229 +2,297 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Flex Participation Planner · ERCOT data-center campus (concept)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<title>Flex Participation | Lancium Compute (concept)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Lancium Compute portal uses Barlow (body) and Gotham (headings/nav). Gotham is commercial; Montserrat is the closest open substitute. -->
+<link href="https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Barlow+Semi+Condensed:wght@400;600&family=Montserrat:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/open-iconic/1.1.1/font/css/open-iconic-bootstrap.min.css">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
+  /* ---- Lancium Compute portal tokens (from portal.lancium.com application CSS, Bootstrap 4.6.2 theme) ---- */
   :root {
-    --navy: #0E2547; --blue: #3E7CB1; --sky: #288CD2; --steel: #81A4CD; --mist: #DBE4EE;
-    --green: #41B93A; --orange: #F17300; --ink: #383838; --gray: #8F8F8F; --line: #E3E8EF; --bg: #F4F6F9;
+    --primary: #656c79; --primary-hi: #7c828d; --success: #288cd2; --info: #86c6f8; --warning: #143469; --danger: #70161e;
+    --green: #009393; --text: #333; --muted: #6c757d; --line: #ced4da; --line2: #dee2e6; --light: #f8f9fa; --gray200: #e9ecef;
+    --gotham: "Gotham", "Montserrat", sans-serif;
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/1.5 Inter, system-ui, sans-serif; }
-  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
-  /* sidebar */
-  aside { background: var(--navy); color: #fff; padding: 22px 20px 28px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
-  .brand { font: 600 15px Prompt, sans-serif; letter-spacing: .4px; display: flex; align-items: center; gap: 10px; }
-  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(65,185,58,.18); }
-  .brand small { display: block; font: 500 11px Inter; color: var(--steel); letter-spacing: 0; }
-  .grp { margin-top: 22px; }
-  .grp h4 { margin: 0 0 10px; font: 600 11.5px Prompt, sans-serif; letter-spacing: 1.7px; text-transform: uppercase; color: var(--steel); }
-  .field { margin-bottom: 11px; }
-  .field label { display: flex; justify-content: space-between; font-size: 12.5px; color: #DCE6F2; margin-bottom: 4px; }
-  .field label b { font-weight: 600; color: #fff; font-variant-numeric: tabular-nums; }
-  input[type=range] { width: 100%; accent-color: var(--green); }
-  select { width: 100%; background: #16325C; color: #fff; border: 1px solid #2A4A78; border-radius: 6px; padding: 6px 8px; font: 500 12.5px Inter; }
-  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .chip { font: 500 11.5px Inter; padding: 3px 8px; border-radius: 99px; border: 1px solid #2E5285; color: #CFE0F3; background: transparent; cursor: pointer; }
-  .chip.on, .chip:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
-  .svc { display: grid; grid-template-columns: 62px 1fr 38px; align-items: center; gap: 8px; font-size: 12px; color: #DCE6F2; margin-bottom: 6px; }
-  .svc b { text-align: right; color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
-  .note { font-size: 11.5px; color: #9FB6D3; line-height: 1.45; margin-top: 4px; }
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  /* main */
-  main { padding: 0 28px 40px; min-width: 0; }
-  .top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
-  .crumb { font: 600 11.5px Prompt, sans-serif; letter-spacing: 1.7px; text-transform: uppercase; color: var(--blue); }
-  h1 { margin: 2px 0 0; font: 600 24px Prompt, sans-serif; color: var(--navy); letter-spacing: .2px; }
-  .sub { color: #5B6B80; font-size: 13px; margin-top: 2px; }
-  .badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 560px; }
-  .badge { font: 500 12px Inter; padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid var(--line); color: #4A5A70; white-space: nowrap; }
-  .badge.live { color: #1F7A1A; border-color: #BFE5BC; background: #F1FAF0; }
-  .badge.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
-  .badge.busy { color: #8A4A00; border-color: #F6D2AE; background: #FFF6EC; }
-  .badge.busy::before { background: var(--orange); }
-  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
-  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 14px 12px; position: relative; overflow: hidden; }
-  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--mist); }
-  .kpi.hl::before { background: var(--green); }
-  .kpi .k { font: 600 10.5px Prompt, sans-serif; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gray); }
-  .kpi .v { font: 600 24px Inter; color: var(--navy); margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
-  .kpi .d { font-size: 12px; color: #5B6B80; margin-top: 2px; }
-  .kpi .d .up { color: #1F8A19; font-weight: 600; } .kpi .d .dn { color: #C0392B; font-weight: 600; }
-  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
-  .card h3 { margin: 0; font: 600 15px Prompt, sans-serif; color: var(--navy); }
-  .card .hint { font-size: 12.5px; color: #66768A; margin: 2px 0 12px; }
-  .grid2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid2b { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  table { width: 100%; border-collapse: collapse; font-size: 12.8px; font-variant-numeric: tabular-nums; }
-  th { text-align: right; font: 600 10.5px Prompt, sans-serif; letter-spacing: 1.1px; text-transform: uppercase; color: var(--gray); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  th:first-child, td:first-child { text-align: left; }
-  td { text-align: right; padding: 9px 8px; border-bottom: 1px solid #F0F3F7; white-space: nowrap; }
-  tr.opt td { background: #F3FAF2; font-weight: 600; color: var(--navy); }
-  tr.orc td { color: #6A7A8E; font-style: italic; }
-  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
-  .neg { color: #C0392B; } .pos { color: #1F8A19; }
-  .chartbox { position: relative; height: 270px; }
-  .chartbox.tall { height: 300px; }
-  .chartbox.short { height: 170px; }
-  .dayhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
-  .dayhead select { width: auto; background: #fff; color: var(--navy); border: 1px solid var(--line); font-weight: 600; }
-  .daystats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 6px; }
-  .daystats div { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #5B6B80; }
-  .daystats b { display: block; font: 600 15px Inter; color: var(--navy); font-variant-numeric: tabular-nums; }
-  .how { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
-  .how div { border-top: 3px solid var(--mist); padding-top: 10px; font-size: 12.8px; color: #4A5A70; }
-  .how div b { display: block; font: 600 13px Prompt, sans-serif; color: var(--navy); margin-bottom: 4px; }
-  .how div:nth-child(1) { border-color: var(--sky); } .how div:nth-child(2) { border-color: var(--blue); }
-  .how div:nth-child(3) { border-color: var(--green); } .how div:nth-child(4) { border-color: var(--orange); }
-  footer { margin-top: 18px; font-size: 12px; color: #7A889A; display: flex; justify-content: space-between; gap: 20px; }
-  .progress { height: 3px; background: var(--mist); border-radius: 2px; overflow: hidden; margin-top: 8px; }
-  .progress i { display: block; height: 100%; width: 0; background: var(--green); transition: width .2s; }
-  .err { color: #C0392B; font-weight: 600; }
+  html, body { font-family: "Barlow", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif; color: var(--text); background: #fff; height: 100%; }
+  body { display: flex; flex-direction: column; }
+  a { color: var(--primary); }
+  h1 { font-family: var(--gotham); font-weight: bold; }
+  h3 { font-family: var(--gotham); font-weight: 600; font-size: 1.75rem; margin-left: 1.05rem; }
+  /* portal theme adds a container-xxl breakpoint: 1368px */
+  @media (min-width: 1400px) { .container { max-width: 1368px; } }
+  h5 { font-family: var(--gotham); font-weight: bold; text-transform: uppercase; font-size: 1.1rem; }
+
+  /* navbar: .navbar.navbar-expand-lg.navbar-dark.bg-gradient-primary, opacity .9, Gotham, min-height 66px, blip */
+  .navbar { opacity: .9; position: relative; z-index: 3; font-family: var(--gotham); padding-top: .5rem; padding-bottom: .5rem; min-height: 66px; }
+  .bg-gradient-primary { background: #656c79 linear-gradient(180deg, #7c828d, #656c79) repeat-x !important; }
+  .navbar .blip { position: absolute; top: 97%; left: 0; width: 100%; height: 53px; pointer-events: none; }
+  .navbar .blip #blip { stroke: #97a2b6; stroke-width: 6; }
+  .navbar .blip #blip-fill { fill: #656c79; stroke: #656c79; }
+  .navbar-brand img { height: 50px; width: auto; }
+  .navbar-brand { margin-right: 1.4rem; }
+  .navbar-dark .navbar-nav .nav-link { color: #fff; font-weight: 600; font-size: .95rem; padding: .6rem .5rem; border-radius: 0; letter-spacing: .1px; }
+  .navbar-dark .navbar-nav .nav-link:hover { color: #fff; background: rgba(255,255,255,.08); }
+  .navbar-dark .navbar-nav .active > .nav-link { color: #fff; background: #912d3b; }
+  .navbar-nav .nav-link .new { font-family: "Barlow"; font-size: .62rem; font-weight: 600; text-transform: uppercase; letter-spacing: .5px; background: var(--info); color: #143469; padding: 1px 4px; border-radius: 2px; margin-left: 5px; vertical-align: 2px; }
+
+  .main-wrapper { flex: 1 0 auto; }
+  .page-container { margin-top: 25px; }
+  .page-title { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 4px; }
+  .page-title h3 { margin: 0; }
+  .page-sub { color: var(--muted); font-size: .95rem; margin: 6px 0 4px; }
+  .page-container .section-header { font-size: 1.1rem; color: var(--primary); font-weight: bold; margin-top: 25px; margin-bottom: 15px; }
+
+  /* sections: .section-wrapper > .section-label (legend) + .section-container (bordered) */
+  .section-wrapper { margin-top: 15px; margin-bottom: 15px; }
+  .section-wrapper .section-label { display: inline-block; position: relative; z-index: 1; font-family: var(--gotham); font-weight: 400; font-size: .9rem; line-height: 1.2; text-transform: uppercase; margin-bottom: 0; top: .55rem; margin-left: 1.05rem; background: #fff; padding-left: .2rem; padding-right: .25rem; color: var(--text); }
+  .section-wrapper .section-label a { color: inherit; text-decoration: none; cursor: pointer; }
+  .section-wrapper .section-label a::after { display: inline-block; margin-left: .255em; vertical-align: .2em; content: ""; border-top: .3em solid; border-right: .3em solid transparent; border-bottom: 0; border-left: .3em solid transparent; transition: .2s transform ease-in-out; }
+  .section-wrapper .section-label a.collapsed::after { transform: rotate(-90deg); }
+  .section-container { border: 1px solid var(--line); border-radius: 2px; padding: 24px 20px 18px; }
+  .section-container .hint { font-size: .9rem; color: var(--muted); margin: -4px 0 10px; }
+
+  /* job-counts style KPIs (body.users .job-counts) */
+  .job-counts { display: grid; grid-template-columns: repeat(6, 1fr); }
+  .job-counts > div { text-align: center; padding: 2px 8px; border-left: 1px solid var(--line2); }
+  .job-counts > div:first-child { border-left: 0; }
+  .job-counts .lbl { font-size: .9rem; color: var(--success); }
+  .job-counts .val { font-family: var(--gotham); font-weight: bold; font-size: 1.5rem; color: var(--text); line-height: 1.3; font-variant-numeric: tabular-nums; }
+  .job-counts .sub { font-size: .8rem; color: var(--muted); line-height: 1.3; }
+  .text-success-l { color: var(--success); font-weight: 600; } .text-danger-l { color: var(--danger); font-weight: 600; }
+
+  /* form groups: .form-group label uppercase .9rem Barlow; custom-range thumb Lancium gradient */
+  .form-group { margin-bottom: .7rem; }
+  .form-group label { font-size: .75rem; font-weight: bold; text-transform: uppercase; margin-bottom: 0; display: flex; justify-content: space-between; color: var(--text); }
+  .form-group label b { font-weight: 600; text-transform: none; font-size: .85rem; font-variant-numeric: tabular-nums; }
+  .custom-range { height: 1.1rem; }
+  .custom-range::-webkit-slider-thumb { background: #656c79 linear-gradient(180deg, #7c828d, #656c79) repeat-x; box-shadow: 0 .1rem .25rem rgba(0,0,0,.1); }
+  .custom-range::-webkit-slider-thumb:active { background: #c3c7cd linear-gradient(180deg, #cccfd5, #c3c7cd) repeat-x; }
+  .custom-range:focus::-webkit-slider-thumb { box-shadow: 0 0 0 1px #fff, 0 0 0 .2rem rgba(101,108,121,.25); }
+  .inputs-sub { font-family: var(--gotham); font-weight: 500; font-size: .78rem; text-transform: uppercase; color: var(--primary); margin: 14px 0 6px; padding-top: 10px; border-top: 1px solid var(--gray200); }
+  .inputs-sub:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+  .svc { display: grid; grid-template-columns: 62px 1fr 44px; gap: 8px; align-items: center; font-size: .85rem; margin-bottom: 2px; }
+  .svc b { font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+  .note { font-size: .8rem; color: var(--muted); line-height: 1.35; margin-top: 2px; }
+  .btn-outline-primary { color: #656c79; border-color: #656c79; }
+  .btn-outline-primary:hover, .btn-outline-primary.active { color: #fff !important; background-color: #656c79 !important; border-color: #656c79 !important; }
+  .btn-sm { border-radius: .2rem; }
+  .custom-select-sm { font-family: "Barlow"; }
+
+  /* tables: .table-sm, thead th normal .9rem no top border; tbody th Gotham 1.1rem; tr.day td primary */
+  .table-sm th, .table-sm td { padding: .3rem; }
+  .table-sm thead tr th { font-weight: normal; font-size: .9rem; border-top: none; color: var(--muted); white-space: nowrap; }
+  .table-sm tbody tr th { font-family: var(--gotham); font-weight: normal; font-size: 1rem; line-height: 1.1; white-space: nowrap; }
+  .table-sm tbody tr.day td { background-color: #656c79; color: #fff; font-family: var(--gotham); font-size: .9rem; }
+  .table td.num, .table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .table-sm th, .table-sm td { vertical-align: middle; }
+  .table tr.opt th, .table tr.opt td { background: #e7f4fe; }
+  .table tr.orc th, .table tr.orc td { color: var(--muted); }
+  .sw { display: inline-block; width: 10px; height: 10px; margin-right: 7px; vertical-align: 1px; }
+  .badge { font-family: "Barlow"; font-weight: 600; letter-spacing: .2px; }
+  .badge-primary { background-color: #656c79; } .badge-success { background-color: #288cd2; } .badge-info { background-color: #86c6f8; color: #212529; }
+  .badge-warning { background-color: #143469; color: #fff; } .badge-danger { background-color: #70161e; }
+  .alert-info { color: #466781; background: #e7f4fe linear-gradient(180deg, #ebf6fe, #e7f4fe) repeat-x; border-color: #b6ddfb; font-family: var(--gotham); font-size: .85rem; padding: .5rem .9rem; }
+  .icon-container .oi { color: var(--primary); margin-right: 6px; font-size: .8rem; }
+
+  .chartbox { position: relative; height: 250px; }
+  .chartbox.tall { height: 270px; } .chartbox.short { height: 165px; }
+  .daystats { display: grid; grid-template-columns: repeat(5, 1fr); margin: 4px 0 10px; }
+  .daystats > div { text-align: center; border-left: 1px solid var(--line2); }
+  .daystats > div:first-child { border-left: 0; }
+  .daystats .lbl { font-size: .85rem; color: var(--success); }
+  .daystats .val { font-family: var(--gotham); font-weight: bold; font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+  .progress { height: 4px; border-radius: 0; background: var(--gray200); margin-top: 8px; }
+  .progress-bar { background-color: #656c79; }
+  .how p { font-size: .95rem; margin-bottom: .6rem; }
+
+  /* footer: the portal footer (blip stroke #288cd2, muted small text) */
+  .site-footer { margin-top: 30px; border-top: 1px solid var(--line2); background: var(--light); font-size: .85rem; color: var(--muted); }
+  .site-footer .container { display: flex; justify-content: space-between; gap: 20px; padding-top: 12px; padding-bottom: 12px; }
+  .site-footer .oi { color: var(--success); }
 </style>
 </head>
-<body>
-<div class="app">
-  <aside>
-    <div class="brand"><span class="dot"></span><div>Campus Ops Console<small>Flex participation · concept screen</small></div></div>
+<body class="flex show">
+<nav class="navbar navbar-expand-lg navbar-dark bg-gradient-primary">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 53" fill="none" preserveAspectRatio="none" class="blip" aria-hidden="true">
+    <path d="m -4,4 h 1546.5 v 39.5 c 0,0 36,-39.4999 87.5,-39.4999 51.5,0 290,-10e-5 290,-10e-5" id="blip"></path>
+    <path d="M 1545.8574,0.51120996 1545.6968,35.82777 c 33.49,-28.5992967 58.3562,-32.4736744 82.0388,-35.28812015 z" id="blip-fill"></path>
+  </svg>
+  <div class="container">
+    <a class="navbar-brand" href="#"><img src="assets/lancium_compute_logo_small.png" alt="Lancium Compute"></a>
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item"><a class="nav-link" href="#" onclick="return false">Jobs</a></li>
+      <li class="nav-item active"><a class="nav-link" href="#">Flex Participation<span class="new">new</span></a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="return false">Documentation</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="return false">Account</a></li>
+      <li class="nav-item"><a class="nav-link" href="#" onclick="return false">About Lancium</a></li>
+    </ul>
+    <ul class="navbar-nav ml-auto">
+      <li class="nav-item"><a class="nav-link" href="#" onclick="return false">Logout</a></li>
+    </ul>
+  </div>
+</nav>
 
-    <div class="grp"><h4>Campus</h4>
-      <div class="field"><label>Total campus load <b id="o-campus"></b></label><input id="campus" type="range" min="200" max="2000" step="50" value="1200"></div>
-      <div class="field"><label>Interruptible training block <b id="o-flex"></b></label><input id="flex" type="range" min="25" max="1000" step="25" value="300"></div>
-      <div class="note">Remaining load is treated as firm inference: always on, never offered.</div>
-    </div>
+<div class="main-wrapper">
+<main role="main" class="container">
+<div class="page-container">
+  <div class="page-title">
+    <h3>Flex Participation</h3>
+    <div><span class="badge badge-primary" id="b-data">Loading ERCOT data…</span> <span class="badge badge-info" id="b-status">Running backtest…</span></div>
+  </div>
+  <div class="page-sub">Abilene-type campus · ERCOT LZ_WEST · Controllable Load Resource. Hour-by-hour split of the interruptible training block into run, economic curtailment and ancillary capacity, planned day-ahead and replayed against real ERCOT prices.</div>
 
-    <div class="grp"><h4>Tenant SLA</h4>
-      <div class="field"><label>Value of interruptible compute <b id="o-value"></b></label><input id="value" type="range" min="20" max="1500" step="10" value="150">
-        <div class="chips" id="presets">
-          <button class="chip" data-v="60">Preemptible batch $60</button>
-          <button class="chip" data-v="150">Training $150</button>
-          <button class="chip" data-v="1000">Frontier training $1,000</button>
-        </div></div>
-      <div class="field"><label>Curtailment budget / month <b id="o-budget"></b></label><input id="budget" type="range" min="0" max="120" step="2" value="40"></div>
-      <div class="field"><label>Min. training throughput <b id="o-thru"></b></label><input id="thru" type="range" min="85" max="100" step="0.5" value="95"></div>
-      <div class="field"><label>Ramp limit (scheduler) <b id="o-ramp"></b></label><input id="ramp" type="range" min="25" max="1000" step="25" value="150"></div>
-    </div>
+  <div class="section-wrapper">
+    <div class="section-label">Summary · CVaR optimizer</div>
+    <div class="section-container"><div class="job-counts" id="kpis"></div></div>
+  </div>
 
-    <div class="grp"><h4>Risk</h4>
-      <div class="row2">
-        <div class="field"><label>CVaR level <b id="o-alpha"></b></label><input id="alpha" type="range" min="0.8" max="0.99" step="0.01" value="0.95"></div>
-        <div class="field"><label>CVaR weight <b id="o-beta"></b></label><input id="beta" type="range" min="0" max="2" step="0.1" value="0.5"></div>
+  <div class="row">
+    <div class="col-lg-4">
+      <div class="section-wrapper">
+        <div class="section-label">Planner inputs</div>
+        <div class="section-container">
+          <div class="inputs-sub">Campus</div>
+          <div class="form-group"><label for="campus">Total campus load <b id="o-campus"></b></label><input id="campus" class="custom-range" type="range" min="200" max="2000" step="50" value="1200"></div>
+          <div class="form-group"><label for="flex">Interruptible training block <b id="o-flex"></b></label><input id="flex" class="custom-range" type="range" min="25" max="1000" step="25" value="300"></div>
+          <div class="note">Remaining load is firm inference: always on, never offered.</div>
+
+          <div class="inputs-sub">Tenant SLA</div>
+          <div class="form-group"><label for="value">Value of interruptible compute <b id="o-value"></b></label><input id="value" class="custom-range" type="range" min="20" max="1500" step="10" value="150">
+            <div class="btn-group btn-group-sm d-flex mt-1" id="presets" role="group">
+              <button type="button" class="btn btn-outline-primary btn-sm" data-v="60">Batch $60</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" data-v="150">Training $150</button>
+              <button type="button" class="btn btn-outline-primary btn-sm" data-v="1000">Frontier $1,000</button>
+            </div></div>
+          <div class="form-group"><label for="budget">Curtailment budget / month <b id="o-budget"></b></label><input id="budget" class="custom-range" type="range" min="0" max="120" step="2" value="40"></div>
+          <div class="form-group"><label for="thru">Min. training throughput <b id="o-thru"></b></label><input id="thru" class="custom-range" type="range" min="85" max="100" step="0.5" value="95"></div>
+          <div class="form-group"><label for="ramp">Ramp limit (scheduler) <b id="o-ramp"></b></label><input id="ramp" class="custom-range" type="range" min="25" max="1000" step="25" value="150"></div>
+
+          <div class="inputs-sub">Risk</div>
+          <div class="form-row">
+            <div class="form-group col-6"><label for="alpha">CVaR level <b id="o-alpha"></b></label><input id="alpha" class="custom-range" type="range" min="0.8" max="0.99" step="0.01" value="0.95"></div>
+            <div class="form-group col-6"><label for="beta">CVaR weight <b id="o-beta"></b></label><input id="beta" class="custom-range" type="range" min="0" max="2" step="0.1" value="0.5"></div>
+          </div>
+
+          <div class="inputs-sub">Ancillary eligibility (share of block)</div>
+          <div id="caps"></div>
+          <div class="inputs-sub">Deployment proxy (RT price trigger)</div>
+          <div id="deploy"></div>
+          <div class="note">Awarded RRS / ECRS / Non-Spin MW are assumed deployed in hours whose RT price exceeds these levels. ERCOT does not publish per-resource deployments.</div>
+
+          <div class="inputs-sub">Backtest window</div>
+          <div class="form-row"><div class="col-6"><select id="start" class="custom-select custom-select-sm"></select></div><div class="col-6"><select id="end" class="custom-select custom-select-sm"></select></div></div>
+          <div class="note">Every hour is after ERCOT's Dec 5 2025 RTC+B go-live.</div>
+        </div>
       </div>
-      <div class="note">Objective per hour: E[cost] + weight × CVaR of cost over empirical DA→RT scenarios.</div>
     </div>
 
-    <div class="grp"><h4>Ancillary eligibility (share of block)</h4>
-      <div id="caps"></div>
-    </div>
-
-    <div class="grp"><h4>Deployment proxy</h4>
-      <div id="deploy"></div>
-      <div class="note">Awarded RRS/ECRS/Non-Spin MW are assumed deployed (curtailed) in hours whose RT price exceeds these levels. ERCOT does not publish per-resource deployments; this is an explicit assumption.</div>
-    </div>
-
-    <div class="grp"><h4>Backtest window</h4>
-      <div class="row2"><select id="start"></select><select id="end"></select></div>
-      <div class="note">ERCOT LZ_WEST (Abilene area). Every hour is after the Dec 5 2025 RTC+B go-live.</div>
-    </div>
-  </aside>
-
-  <main>
-    <div class="top">
-      <div>
-        <div class="crumb">Energy · Flexible load · ERCOT</div>
-        <h1>Flex Participation Planner</h1>
-        <div class="sub">Hour-by-hour split of the interruptible block into run / economic curtailment / ancillary capacity, planned day-ahead and replayed against real ERCOT prices.</div>
+    <div class="col-lg-8">
+      <div class="section-wrapper">
+        <div class="section-label">Strategy comparison</div>
+        <div class="section-container">
+          <div class="hint">Value vs. running the whole campus on the RT index. Flex value = energy avoided − compute value forgone + ancillary revenue. Hedge P&amp;L is shown separately.</div>
+          <table class="table table-sm mb-0" id="tbl"></table>
+        </div>
       </div>
-      <div class="badges">
-        <span class="badge" id="b-data">Loading ERCOT data…</span>
-        <span class="badge busy" id="b-status">Running backtest…</span>
+      <div class="section-wrapper">
+        <div class="section-label">Cumulative flex value ($M)</div>
+        <div class="section-container"><div class="chartbox"><canvas id="c-cum"></canvas></div></div>
+      </div>
+      <div class="section-wrapper">
+        <div class="section-label">SLA · curtailed hours vs. budget</div>
+        <div class="section-container">
+          <div class="hint">Curtailed hour-equivalents of the block per month. Budget = min(curtailment budget, (1 − min throughput) × hours).</div>
+          <div class="chartbox" style="height:210px"><canvas id="c-sla"></canvas></div>
+        </div>
       </div>
     </div>
+  </div>
 
-    <section class="kpis" id="kpis"></section>
-
-    <section class="card" style="margin-bottom:16px">
-      <h3>Strategy comparison</h3>
-      <div class="hint">Value vs. running the whole campus on the RT index. Flex value = energy avoided − compute value forgone + ancillary revenue. The optimizer's day-ahead hedge P&amp;L is reported separately and not counted in flex value.</div>
-      <table id="tbl"></table>
-    </section>
-
-    <section class="grid2b">
-      <div class="card">
-        <h3>Cumulative flex value</h3>
-        <div class="hint">Running total of flex value by strategy over the backtest window ($M).</div>
-        <div class="chartbox"><canvas id="c-cum"></canvas></div>
-      </div>
-      <div class="card">
-        <h3>SLA: curtailed hours vs. budget</h3>
-        <div class="hint">Curtailed hour-equivalents of the block per month (curtailed MWh ÷ block MW). Budget = min(curtailment budget, (1 − min throughput) × hours).</div>
-        <div class="chartbox"><canvas id="c-sla"></canvas></div>
-      </div>
-    </section>
-
-    <section class="card" style="margin-bottom:16px">
-      <div class="dayhead">
-        <div><h3>Operating day drill-down</h3><div class="hint" id="day-hint">What the optimizer committed day-ahead for each hour, and what actually happened in real time.</div></div>
-        <select id="day"></select>
+  <div class="section-wrapper">
+    <div class="section-label">Operating day</div>
+    <div class="section-container">
+      <div class="d-flex justify-content-between align-items-start">
+        <div class="hint mb-2">What the optimizer committed day-ahead for each hour, and what actually happened in real time.</div>
+        <select id="day" class="custom-select custom-select-sm" style="width:auto"></select>
       </div>
       <div class="daystats" id="daystats"></div>
       <div class="chartbox short"><canvas id="c-price"></canvas></div>
       <div class="chartbox tall"><canvas id="c-alloc"></canvas></div>
-    </section>
+    </div>
+  </div>
 
-    <section class="grid2" style="grid-template-columns: 1fr 1.1fr">
-      <div class="card">
-        <h3>Which rule wins depends on compute value</h3>
-        <div class="hint" id="sens-hint">Flex value by strategy as the value of interruptible compute changes (same window and SLA).</div>
-        <div class="chartbox"><canvas id="c-sens"></canvas></div>
-        <div class="progress"><i id="sens-bar"></i></div>
-      </div>
-      <div class="card">
-      <h3>How the planner works</h3>
-      <div class="hint">Everything on this screen is computed in your browser from the public ERCOT files; nothing is hard-coded.</div>
-      <div class="how">
-        <div><b>1 · Scenarios</b>For each delivery hour, the RT−DA spreads at the same hour over a trailing 30-day window, lagged two days so the plan never sees prices it could not have known at DAM time.</div>
-        <div><b>2 · Hourly CVaR LP</b>A linear program splits the block into planned-off, economic flex (curtail if RT &gt; threshold), REGUP / REGDN / RRS / ECRS / Non-Spin capacity and a day-ahead energy hedge, minimising expected cost + weight × CVaR (Rockafellar–Uryasev). Solved by a dependency-free simplex.</div>
-        <div><b>3 · SLA as a price</b>The monthly curtailment budget becomes a Lagrange multiplier set from an empirical price quantile of the remaining budget, plus a chronological within-day reservation and a hard real-time guard that includes ramp-recovery hours.</div>
-        <div><b>4 · Honest replay</b>Real-time settlement at actual LZ_WEST prices with ramp limits, deployments, and budget enforcement. The hindsight bound sees realised prices and ignores ramp limits, so it is an upper bound, not a target.</div>
-      </div>
-      </div>
-    </section>
+  <div class="section-wrapper">
+    <div class="section-label"><a class="collapsed" id="hourly-toggle">Hourly plan</a></div>
+    <div class="section-container" id="hourly-wrap" style="display:none">
+      <table class="table table-sm mb-0" id="hourly"></table>
+    </div>
+  </div>
 
-    <footer>
-      <div id="src">Data: ERCOT MIS public reports 13060, 13061, 13091.</div>
-      <div>Unofficial concept demo by Mohith Gajjela. Not affiliated with Lancium. Real public ERCOT prices; synthetic campus parameters.</div>
-    </footer>
-  </main>
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="section-wrapper">
+        <div class="section-label">Sensitivity · compute value</div>
+        <div class="section-container">
+          <div class="hint" id="sens-hint">Flex value by strategy as the value of interruptible compute changes (same window and SLA).</div>
+          <div class="chartbox"><canvas id="c-sens"></canvas></div>
+          <div class="progress"><div class="progress-bar" id="sens-bar" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-6">
+      <div class="section-wrapper">
+        <div class="section-label">How the planner works</div>
+        <div class="section-container how">
+          <p><b>1. Scenarios.</b> For each delivery hour, the RT−DA spreads at the same hour over a trailing 30-day window, lagged two days so the plan never sees prices it could not have known at DAM time.</p>
+          <p><b>2. Hourly CVaR LP.</b> A linear program splits the block into planned-off, economic flex, Reg-Up / Reg-Down / RRS / ECRS / Non-Spin capacity and a day-ahead hedge, minimising expected cost + weight × CVaR (Rockafellar–Uryasev), solved by a dependency-free simplex.</p>
+          <p><b>3. SLA as a price.</b> The monthly curtailment budget becomes a Lagrange multiplier from an empirical price quantile, plus a within-day reservation and a real-time guard that counts ramp-recovery hours.</p>
+          <p class="mb-0"><b>4. Honest replay.</b> Settlement at actual LZ_WEST prices with ramp limits and deployments. The hindsight bound sees realised prices and ignores ramp limits: an upper bound, not a target.</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+</main>
+</div>
+
+<footer class="site-footer">
+  <div class="container">
+    <div id="src">Data: ERCOT MIS public reports 13060, 13061, 13091.</div>
+    <div class="text-right" style="min-width:330px">Unofficial concept demo by Mohith Gajjela. Not affiliated with Lancium. Real public ERCOT prices; synthetic campus parameters.</div>
+  </div>
+</footer>
 
 <script type="module">
 const SERV = ['REGUP', 'REGDN', 'RRS', 'ECRS', 'NSPIN'];
 const SERV_LABEL = { REGUP: 'Reg-Up', REGDN: 'Reg-Down', RRS: 'RRS', ECRS: 'ECRS', NSPIN: 'Non-Spin' };
-const COLORS = { alwaysOn: '#9C9C9C', priceCap: '#81A4CD', asMax: '#3E7CB1', optimizer: '#41B93A', oracle: '#0E2547' };
+// Lancium Compute theme colors: primary #656c79, success #288cd2, info #86c6f8, warning #143469, danger #70161e, green #009393
+const COLORS = { alwaysOn: '#adb5bd', priceCap: '#86c6f8', asMax: '#143469', optimizer: '#288cd2', oracle: '#656c79' };
 const LABELS = { alwaysOn: 'Always on (RT index)', priceCap: 'Naive: curtail above break-even', asMax: 'Naive: max ancillary', optimizer: 'CVaR optimizer', oracle: 'Hindsight bound' };
 const capDefaults = { REGUP: 0.1, REGDN: 0.1, RRS: 0.3, ECRS: 0.3, NSPIN: 0.3 };
 const depDefaults = { RRS: 1000, ECRS: 400, NSPIN: 250 };
 
-Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
-Chart.defaults.font.size = 11.5;
-Chart.defaults.color = '#5B6B80';
-Chart.defaults.borderColor = '#EEF1F5';
+Chart.defaults.font.family = 'Barlow, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+Chart.defaults.font.size = 12.5;
+Chart.defaults.color = '#6c757d';
+Chart.defaults.borderColor = '#e9ecef';
 Chart.defaults.animation = false;
+// Bootstrap 4 tooltip look: black .9, radius .25rem, Barlow .875rem
+Object.assign(Chart.defaults.plugins.tooltip, { backgroundColor: 'rgba(0,0,0,.9)', cornerRadius: 4, padding: 8, titleFont: { family: 'Barlow', weight: '600', size: 13 }, bodyFont: { family: 'Barlow', size: 13 }, boxPadding: 4 });
+Object.assign(Chart.defaults.plugins.legend.labels, { boxWidth: 10, boxHeight: 10, color: '#333', font: { family: 'Barlow', size: 12.5 } });
+const axisTitle = (t) => ({ display: true, text: t, color: '#6c757d', font: { family: 'Barlow', size: 12.5 } });
 
 const $ = (id) => document.getElementById(id);
 const fmtM = (x) => (x <= -5000 ? '−' : '') + '$' + (Math.abs(x) / 1e6).toFixed(2) + 'M';
 const fmtK = (x) => (x <= -500 ? '−' : '') + '$' + Math.round(Math.abs(x) / 1e3).toLocaleString() + 'k';
 const pct = (x, d = 1) => (100 * x).toFixed(d) + '%';
 
-// ---- build parameter widgets ----
-$('caps').innerHTML = SERV.map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input type="range" id="cap-${s}" min="0" max="1" step="0.05" value="${capDefaults[s]}"><b id="o-cap-${s}"></b></div>`).join('');
-$('deploy').innerHTML = Object.keys(depDefaults).map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input type="range" id="dep-${s}" min="100" max="3000" step="50" value="${depDefaults[s]}"><b id="o-dep-${s}" style="font-size:11px"></b></div>`).join('');
+$('caps').innerHTML = SERV.map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input class="custom-range" type="range" id="cap-${s}" min="0" max="1" step="0.05" value="${capDefaults[s]}"><b id="o-cap-${s}"></b></div>`).join('');
+$('deploy').innerHTML = Object.keys(depDefaults).map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input class="custom-range" type="range" id="dep-${s}" min="100" max="3000" step="50" value="${depDefaults[s]}"><b id="o-dep-${s}"></b></div>`).join('');
 
 function readParams() {
   const caps = {}, deployPrice = {};
@@ -249,15 +317,14 @@ function paintLabels(P) {
   $('o-beta').textContent = P.beta.toFixed(1);
   for (const s of SERV) $('o-cap-' + s).textContent = Math.round(P.caps[s] * 100) + '%';
   for (const s of Object.keys(depDefaults)) $('o-dep-' + s).textContent = '$' + P.deployPrice[s];
-  document.querySelectorAll('#presets .chip').forEach((c) => c.classList.toggle('on', +c.dataset.v === P.computeValue));
+  document.querySelectorAll('#presets .btn').forEach((c) => c.classList.toggle('active', +c.dataset.v === P.computeValue));
 }
 
-// ---- worker plumbing ----
 const worker = new Worker(new URL('./src/worker.js', import.meta.url), { type: 'module' });
 let runId = 0, sensId = 0, meta = null, last = null;
 worker.onmessage = (ev) => {
   const m = ev.data;
-  if (m.type === 'error') { $('b-status').className = 'badge'; $('b-status').innerHTML = '<span class="err">Error: ' + m.message + '</span>'; return; }
+  if (m.type === 'error') { $('b-status').className = 'badge badge-danger'; $('b-status').textContent = 'Error: ' + m.message; return; }
   if (m.type === 'result' && m.id === runId) {
     if (!meta) initWindow(m.meta);
     meta = m.meta; last = m;
@@ -269,40 +336,40 @@ worker.onmessage = (ev) => {
 };
 
 function initWindow(mt) {
-  const months = mt.months.slice(1); // the first month is scenario warm-up
-  const opt = (sel) => months.map((mo) => `<option value="${mo}">${new Date(mo + '-15').toLocaleString('en-US', { month: 'short', year: 'numeric' })}</option>`).join('');
+  const months = mt.months.slice(1); // first month is scenario warm-up
+  const opt = () => months.map((mo) => `<option value="${mo}">${new Date(mo + '-15').toLocaleString('en-US', { month: 'short', year: 'numeric' })}</option>`).join('');
   $('start').innerHTML = opt(); $('end').innerHTML = opt();
   $('start').value = months[0]; $('end').value = months[months.length - 1];
-  $('b-data').textContent = `ERCOT ${mt.zone} · ${mt.first} → ${mt.last} · public MIS data`;
-  $('src').textContent = `Data: ERCOT MIS public reports 13060 (DAM SPP), 13061 (RTM SPP, 15-min→hourly), 13091 (DAM MCPC): ${Object.values(mt.sources).join(', ')}.`;
+  $('b-data').textContent = `ERCOT ${mt.zone} · ${mt.first} → ${mt.last}`;
+  $('src').innerHTML = `<span class="oi oi-data-transfer-download"></span> Data: ERCOT MIS public reports 13060 (DAM SPP), 13061 (RTM SPP, 15-min→hourly), 13091 (DAM MCPC): ${Object.values(mt.sources).join(', ')}.`;
 }
-
 function windowOpts() {
   if (!$('start').value) return {};
   let s = $('start').value, e = $('end').value;
   if (e < s) { e = s; $('end').value = s; }
   return { startDate: s + '-01', endDate: e + '-31' };
 }
-
 let timer = null;
 function schedule() {
   const P = readParams(); paintLabels(P);
   clearTimeout(timer);
   timer = setTimeout(() => {
-    $('b-status').className = 'badge busy'; $('b-status').textContent = 'Running backtest…';
+    $('b-status').className = 'badge badge-info'; $('b-status').textContent = 'Running backtest…';
     worker.postMessage({ type: 'run', id: ++runId, params: P, opts: windowOpts() });
   }, 180);
 }
-document.querySelectorAll('aside input, aside select').forEach((el) => el.addEventListener('input', schedule));
-document.querySelectorAll('#presets .chip').forEach((c) => c.addEventListener('click', () => { $('value').value = c.dataset.v; schedule(); }));
-
+document.querySelectorAll('input[type=range], select#start, select#end').forEach((el) => el.addEventListener('input', schedule));
+document.querySelectorAll('#presets .btn').forEach((c) => c.addEventListener('click', () => { $('value').value = c.dataset.v; schedule(); }));
+$('hourly-toggle').addEventListener('click', () => {
+  const t = $('hourly-toggle'), w = $('hourly-wrap');
+  const open = t.classList.contains('collapsed');
+  t.classList.toggle('collapsed', !open); w.style.display = open ? '' : 'none';
+});
 function startSens() {
   $('sens-bar').style.width = '0%';
-  const P = readParams();
-  worker.postMessage({ type: 'sens', id: ++sensId, params: P, opts: { ...windowOpts(), values: [40, 80, 150, 250, 500, 1000] } });
+  worker.postMessage({ type: 'sens', id: ++sensId, params: readParams(), opts: { ...windowOpts(), values: [40, 80, 150, 250, 500, 1000] } });
 }
 
-// ---- rendering ----
 const charts = {};
 function chart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); return charts[id]; }
 
@@ -310,8 +377,8 @@ function render(R, ms) {
   const S = R.strategies, P = R.params;
   const O = S.optimizer.totals, A = S.alwaysOn.totals, OR = S.oracle.totals;
   const nHours = S.optimizer.hourly.length;
-  $('b-status').className = 'badge live';
-  $('b-status').textContent = `Backtest complete · ${nHours.toLocaleString()} hours · ${S.optimizer.daily.length} LP-planned days · ${(ms / 1000).toFixed(1)} s`;
+  $('b-status').className = 'badge badge-success';
+  $('b-status').textContent = `Backtest complete · ${nHours.toLocaleString()} h · ${(ms / 1000).toFixed(1)} s`;
 
   const bestNaive = Math.max(S.priceCap.totals.flexValue, S.asMax.totals.flexValue);
   const months = Math.max(1, S.optimizer.monthly.length);
@@ -320,41 +387,39 @@ function render(R, ms) {
   const share = OR.flexValue > 0 ? O.flexValue / OR.flexValue : NaN;
   const vsNaive = O.flexValue - bestNaive;
   const kpis = [
-    { k: 'Flex value', v: fmtM(O.flexValue), d: `${isFinite(share) ? pct(share, 0) : '–'} of hindsight bound`, hl: true },
-    { k: 'vs. best naive rule', v: (vsNaive >= 0 ? '+' : '') + fmtM(vsNaive), d: `best naive: ${fmtM(bestNaive)}` },
+    { k: 'Flex value', v: fmtM(O.flexValue), d: `${isFinite(share) ? pct(share, 0) : '–'} of hindsight bound` },
+    { k: 'vs. best naive rule', v: (vsNaive >= 0 ? '+' : '−') + fmtM(Math.abs(vsNaive)), d: `best naive ${fmtM(bestNaive)}` },
     { k: 'Ancillary revenue', v: fmtM(O.asRev), d: O.flexValue > 0 ? `${pct(Math.max(0, O.asRev) / O.flexValue, 0)} of flex value` : 'no positive flex value' },
     { k: 'Curtailed / month', v: O.curtailHEperMonth.toFixed(1) + ' h', d: `budget ${avgBudget.toFixed(1)} h · ${O.violationHE === 0 ? '0 SLA breaches' : O.violationHE.toFixed(1) + ' h over'}` },
-    { k: 'Compute delivered', v: pct(O.computeDelivered, 2), d: `of interruptible MWh · floor ${pct(P.minThroughput, 1)}` },
-    { k: 'Tail risk (CVaR95 day)', v: fmtM(O.cvarDailyCost), d: `<span class="${cvarCut >= 0 ? 'up' : 'dn'}">${cvarCut >= 0 ? '−' : '+'}${pct(Math.abs(cvarCut), 0)}</span> vs always-on · hedge ${fmtM(O.hedge)}` },
+    { k: 'Compute delivered', v: pct(O.computeDelivered, 2), d: `floor ${pct(P.minThroughput, 1)}` },
+    { k: 'CVaR95 daily cost', v: fmtM(O.cvarDailyCost), d: `<span class="${cvarCut >= 0 ? 'text-success-l' : 'text-danger-l'}">${cvarCut >= 0 ? '−' : '+'}${pct(Math.abs(cvarCut), 0)}</span> vs always-on` },
   ];
-  $('kpis').innerHTML = kpis.map((x) => `<div class="kpi ${x.hl ? 'hl' : ''}"><div class="k">${x.k}</div><div class="v">${x.v}</div><div class="d">${x.d}</div></div>`).join('');
+  $('kpis').innerHTML = kpis.map((x) => `<div><div class="lbl">${x.k}</div><div class="val">${x.v}</div><div class="sub">${x.d}</div></div>`).join('');
 
-  // table
   const order = ['alwaysOn', 'priceCap', 'asMax', 'optimizer', 'oracle'];
-  const money = (x) => `<span class="${x < -1 ? 'neg' : ''}">${fmtM(x)}</span>`;
-  $('tbl').innerHTML = `<tr><th>Strategy</th><th>Flex value</th><th>Ancillary</th><th>Curtail net</th><th>Hedge P&amp;L</th><th>Curt. h/mo</th><th>Compute</th><th>SLA over</th><th>CVaR95 day</th></tr>` +
+  const money = (x) => `<span class="${x < -1 ? 'text-danger' : ''}">${fmtM(x)}</span>`;
+  $('tbl').innerHTML = `<thead><tr><th>Strategy</th><th class="num">Flex value</th><th class="num">Ancillary</th><th class="num">Curtail net</th><th class="num">Hedge P&amp;L</th><th class="num">Curt. h/mo</th><th class="num">Compute</th><th class="num">SLA</th><th class="num">CVaR95 day</th></tr></thead><tbody>` +
     order.map((k) => {
       const T = S[k].totals;
-      return `<tr class="${k === 'optimizer' ? 'opt' : k === 'oracle' ? 'orc' : ''}"><td><span class="sw" style="background:${COLORS[k]}"></span>${LABELS[k]}</td>
-        <td>${money(T.flexValue)}</td><td>${fmtM(T.asRev)}</td><td>${money(T.avoided - T.lost)}</td><td>${k === 'optimizer' ? money(T.hedge) : '–'}</td>
-        <td>${T.curtailHEperMonth.toFixed(1)}</td><td>${pct(T.computeDelivered, 2)}</td><td>${T.violationHE > 0 ? '<span class="neg">' + T.violationHE.toFixed(1) + ' h</span>' : '0'}</td><td>${fmtM(T.cvarDailyCost)}</td></tr>`;
-    }).join('');
+      const sla = T.violationHE > 0 ? `<span class="badge badge-danger">${T.violationHE.toFixed(1)} h over</span>` : `<span class="badge badge-success">OK</span>`;
+      return `<tr class="${k === 'optimizer' ? 'opt' : k === 'oracle' ? 'orc' : ''}"><th><span class="sw" style="background:${COLORS[k]}"></span>${LABELS[k]}</th>
+        <td class="num">${money(T.flexValue)}</td><td class="num">${fmtM(T.asRev)}</td><td class="num">${money(T.avoided - T.lost)}</td><td class="num">${k === 'optimizer' ? money(T.hedge) : '–'}</td>
+        <td class="num">${T.curtailHEperMonth.toFixed(1)}</td><td class="num">${pct(T.computeDelivered, 2)}</td><td class="num">${k === 'oracle' ? '<span class="badge badge-primary">bound</span>' : sla}</td><td class="num">${fmtM(T.cvarDailyCost)}</td></tr>`;
+    }).join('') + '</tbody>';
 
-  // cumulative flex value (daily): benefit minus hedge for the optimizer
   const labels = S.optimizer.daily.map((d) => d.date);
   const hedgeByDay = {};
   for (const h of S.optimizer.hourly) hedgeByDay[h.date] = (hedgeByDay[h.date] || 0) + h.hedge;
   const ds = ['priceCap', 'asMax', 'optimizer', 'oracle'].map((k) => {
     let acc = 0;
     const data = S[k].daily.map((d) => { acc += d.benefit - (k === 'optimizer' ? (hedgeByDay[d.date] || 0) : 0); return acc / 1e6; });
-    return { label: LABELS[k], data, borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.6 : 1.6, pointRadius: 0, borderDash: k === 'oracle' ? [5, 4] : [], tension: 0.15 };
+    return { label: LABELS[k], data, borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.5 : 1.5, pointRadius: 0, borderDash: k === 'oracle' ? [5, 4] : [], tension: 0.1 };
   });
   chart('c-cum', { type: 'line', data: { labels, datasets: ds }, options: {
     maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
-    scales: { x: { ticks: { maxTicksLimit: 9, callback: function (v) { const l = this.getLabelForValue(v); return l.slice(5); } }, grid: { display: false } }, y: { title: { display: true, text: 'Cumulative flex value ($M)' } } } } });
+    plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
+    scales: { x: { ticks: { maxTicksLimit: 9, callback: function (v) { return this.getLabelForValue(v).slice(5); } }, grid: { display: false } }, y: { title: axisTitle('$M') } } } });
 
-  // day picker: default to the highest-RT day in the window
   const days = [...new Set(S.optimizer.hourly.map((h) => h.date))];
   let maxDay = days[0], maxRt = -Infinity;
   for (const h of S.optimizer.hourly) if (h.rt > maxRt) { maxRt = h.rt; maxDay = h.date; }
@@ -363,15 +428,14 @@ function render(R, ms) {
   $('day').value = days.includes(prev) ? prev : maxDay;
   renderDay();
 
-  // SLA chart
   const mlabels = S.optimizer.monthly.map((m) => new Date(m.key + '-15').toLocaleString('en-US', { month: 'short' }));
   chart('c-sla', { type: 'bar', data: { labels: mlabels, datasets: [
-    { label: LABELS.priceCap, data: S.priceCap.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.priceCap, borderRadius: 3 },
-    { label: LABELS.asMax, data: S.asMax.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.asMax, borderRadius: 3 },
-    { label: LABELS.optimizer, data: S.optimizer.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.optimizer, borderRadius: 3 },
-    { type: 'line', label: 'Monthly budget', data: S.optimizer.monthly.map((m) => m.budget), borderColor: COLORS.alwaysOn ? '#F17300' : '#F17300', borderWidth: 2, pointRadius: 3, stepped: 'middle', fill: false },
-  ] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)} h` } } },
-    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'Curtailed hour-equivalents' } } } } });
+    { label: LABELS.priceCap, data: S.priceCap.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.priceCap },
+    { label: LABELS.asMax, data: S.asMax.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.asMax },
+    { label: LABELS.optimizer, data: S.optimizer.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.optimizer },
+    { type: 'line', label: 'Monthly budget', data: S.optimizer.monthly.map((m) => m.budget), borderColor: '#70161e', backgroundColor: '#70161e', borderWidth: 2, pointRadius: 2.5, stepped: 'middle', fill: false },
+  ] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.parsed.y.toFixed(1)} h` } } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: axisTitle('Hour-equivalents') } } } });
 }
 
 function renderDay() {
@@ -379,49 +443,54 @@ function renderDay() {
   const R = last.result, F = R.params.flexMW;
   const hs = R.strategies.optimizer.hourly.filter((h) => h.date === $('day').value);
   const lab = hs.map((h) => 'HE' + String(h.he).padStart(2, '0'));
-  const tau = hs.map((h) => (isFinite(h.plan.tau) ? h.plan.tau : null));
   chart('c-price', { type: 'line', data: { labels: lab, datasets: [
-    { label: 'RT price (LZ_WEST, hourly avg)', data: hs.map((h) => h.rt), borderColor: '#F17300', backgroundColor: '#F17300', borderWidth: 2, pointRadius: 2, tension: 0.2 },
-    { label: 'DA price', data: hs.map((h) => h.da), borderColor: '#3E7CB1', backgroundColor: '#3E7CB1', borderWidth: 1.6, pointRadius: 0, borderDash: [4, 3] },
-    { label: 'Curtail threshold (value + λ)', data: tau, borderColor: '#0E2547', borderWidth: 1, pointRadius: 0, borderDash: [2, 3], stepped: true },
+    { label: 'RT price (LZ_WEST, hourly avg)', data: hs.map((h) => h.rt), borderColor: '#70161e', backgroundColor: '#70161e', borderWidth: 2, pointRadius: 2, tension: 0.15 },
+    { label: 'DA price', data: hs.map((h) => h.da), borderColor: '#288cd2', backgroundColor: '#288cd2', borderWidth: 1.5, pointRadius: 0, borderDash: [4, 3] },
+    { label: 'Curtail threshold (value + λ)', data: hs.map((h) => (isFinite(h.plan.tau) ? h.plan.tau : null)), borderColor: '#656c79', backgroundColor: '#656c79', borderWidth: 1, pointRadius: 0, borderDash: [2, 3], stepped: true },
   ] }, options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}/MWh` } } },
-    scales: { x: { grid: { display: false } }, y: { title: { display: true, text: '$/MWh' } } } } });
+    plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: $${c.parsed.y.toFixed(2)}/MWh` } } },
+    scales: { x: { grid: { display: false } }, y: { title: axisTitle('$/MWh') } } } });
 
   const stack = (fn) => hs.map((h) => +(fn(h) * F).toFixed(2));
   const ups = ['REGUP', 'RRS', 'ECRS', 'NSPIN'];
-  const svcColor = { REGUP: '#288CD2', RRS: '#0E2547', ECRS: '#3E7CB1', NSPIN: '#81A4CD' };
-  const datasets = [
-    { label: 'Actual consumption', type: 'line', data: stack((h) => h.y), borderColor: '#F17300', backgroundColor: '#F17300', borderWidth: 2.2, pointRadius: 2.5, stepped: 'middle', order: 0 },
-    { label: 'Run (no offer)', data: stack((h) => Math.max(0, 1 - h.plan.p - h.plan.e - ups.reduce((a, k) => a + h.plan.a[k], 0))), backgroundColor: '#DBE4EE', stack: 's', order: 1 },
-    { label: 'Economic flex', data: stack((h) => h.plan.e), backgroundColor: '#41B93A', stack: 's', order: 1 },
+  const svcColor = { REGUP: '#86c6f8', RRS: '#143469', ECRS: '#288cd2', NSPIN: '#656c79' };
+  chart('c-alloc', { type: 'bar', data: { labels: lab, datasets: [
+    { label: 'Actual consumption', type: 'line', data: stack((h) => h.y), borderColor: '#70161e', backgroundColor: '#70161e', borderWidth: 2, pointRadius: 2.5, stepped: 'middle', order: 0 },
+    { label: 'Run (no offer)', data: stack((h) => Math.max(0, 1 - h.plan.p - h.plan.e - ups.reduce((a, k) => a + h.plan.a[k], 0))), backgroundColor: '#dee2e6', stack: 's', order: 1 },
+    { label: 'Economic flex', data: stack((h) => h.plan.e), backgroundColor: '#009393', stack: 's', order: 1 },
     ...ups.map((k) => ({ label: SERV_LABEL[k] + ' capacity', data: stack((h) => h.plan.a[k]), backgroundColor: svcColor[k], stack: 's', order: 1 })),
-    { label: 'Planned off', data: stack((h) => h.plan.p), backgroundColor: 'rgba(143,143,143,.35)', stack: 's', order: 1 },
-  ];
-  chart('c-alloc', { type: 'bar', data: { labels: lab, datasets }, options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-    plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)} MW` } } },
-    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, min: 0, max: Math.ceil(F * 1.02), title: { display: true, text: 'Interruptible block (MW)' } } } } });
+    { label: 'Planned off', data: stack((h) => h.plan.p), backgroundColor: '#c3c7cd', stack: 's', order: 1 },
+  ] }, options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'right' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: ${c.parsed.y.toFixed(0)} MW` } } },
+    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, min: 0, max: Math.ceil(F * 1.02), title: axisTitle('Interruptible block (MW)') } } } });
 
   const sum = (fn) => hs.reduce((a, h) => a + fn(h), 0);
-  const curtMWh = sum((h) => h.curtail) * F;
   const lam = hs.length ? hs[0].plan.lambda : 0;
   $('daystats').innerHTML = [
     ['Flex value (day)', fmtK(sum((h) => h.avoided - h.lost + h.asRev))],
     ['Ancillary revenue', fmtK(sum((h) => h.asRev))],
-    ['Curtailed', Math.round(curtMWh).toLocaleString() + ' MWh'],
+    ['Curtailed', Math.round(sum((h) => h.curtail) * F).toLocaleString() + ' MWh'],
     ['Peak RT price', '$' + Math.max(...hs.map((h) => h.rt)).toFixed(0) + '/MWh'],
     ['Budget price λ', '$' + lam.toFixed(0) + '/MWh'],
-  ].map(([a, b]) => `<div>${a}<b>${b}</b></div>`).join('');
+  ].map(([a, b]) => `<div><div class="lbl">${a}</div><div class="val">${b}</div></div>`).join('');
+
+  const mw = (x) => Math.round(x * F);
+  $('hourly').innerHTML = `<thead><tr><th>Hour</th><th class="num">DA $/MWh</th><th class="num">RT $/MWh</th><th class="num">Econ flex</th><th class="num">Reg-Up</th><th class="num">RRS</th><th class="num">ECRS</th><th class="num">Non-Spin</th><th class="num">Planned off</th><th class="num">Consumed MW</th><th class="num">Status</th></tr></thead><tbody>` +
+    `<tr class="day"><td colspan="11">${$('day').value} · ${hs.length} hours · threshold $${hs.length && isFinite(hs[0].plan.tau) ? hs[0].plan.tau.toFixed(0) : '–'}/MWh</td></tr>` +
+    hs.map((h) => {
+      const st = h.dep > 1e-6 ? '<span class="badge badge-danger">AS deployed</span>' : h.econ > 1e-6 ? '<span class="badge badge-warning">Curtailed</span>' : h.pEff > 1e-6 ? '<span class="badge badge-primary">Planned off</span>' : h.curtail > 1e-6 ? '<span class="badge badge-info">Ramping</span>' : '<span class="badge badge-success">Running</span>';
+      return `<tr><th>HE${String(h.he).padStart(2, '0')}</th><td class="num">${h.da.toFixed(2)}</td><td class="num">${h.rt.toFixed(2)}</td><td class="num">${mw(h.plan.e)}</td><td class="num">${mw(h.plan.a.REGUP)}</td><td class="num">${mw(h.plan.a.RRS)}</td><td class="num">${mw(h.plan.a.ECRS)}</td><td class="num">${mw(h.plan.a.NSPIN)}</td><td class="num">${mw(h.plan.p)}</td><td class="num">${mw(h.y)}</td><td class="num">${st}</td></tr>`;
+    }).join('') + '</tbody>';
 }
 $('day').addEventListener('change', renderDay);
 
 function renderSens(rows) {
   const ks = ['priceCap', 'asMax', 'optimizer', 'oracle'];
   chart('c-sens', { type: 'line', data: { labels: rows.map((r) => '$' + r.v), datasets: ks.map((k) => ({
-    label: LABELS[k], data: rows.map((r) => r[k] / 1e6), borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.6 : 1.6, pointRadius: 3, borderDash: k === 'oracle' ? [5, 4] : [] })) },
+    label: LABELS[k], data: rows.map((r) => r[k] / 1e6), borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.5 : 1.5, pointRadius: 3, borderDash: k === 'oracle' ? [5, 4] : [] })) },
     options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
-      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
-      scales: { x: { title: { display: true, text: 'Value of interruptible compute ($/MWh)' }, grid: { display: false } }, y: { title: { display: true, text: 'Flex value ($M)' } } } } });
+      plugins: { legend: { position: 'bottom' }, tooltip: { callbacks: { label: (c) => ` ${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
+      scales: { x: { title: axisTitle('Value of interruptible compute ($/MWh)'), grid: { display: false } }, y: { title: axisTitle('Flex value ($M)') } } } });
   const wins = rows.filter((r) => r.optimizer >= Math.max(r.priceCap, r.asMax) - 1).length;
   $('sens-hint').textContent = `Flex value by strategy as the value of interruptible compute changes. The optimizer matches or beats both naive rules at ${wins} of ${rows.length} compute values.`;
 }
