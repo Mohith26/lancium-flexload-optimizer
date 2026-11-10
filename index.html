@@ -76,7 +76,7 @@
   .daystats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 6px; }
   .daystats div { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #5B6B80; }
   .daystats b { display: block; font: 600 15px Inter; color: var(--navy); font-variant-numeric: tabular-nums; }
-  .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .how { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 18px; }
   .how div { border-top: 3px solid var(--mist); padding-top: 10px; font-size: 12.8px; color: #4A5A70; }
   .how div b { display: block; font: 600 13px Prompt, sans-serif; color: var(--navy); margin-bottom: 4px; }
   .how div:nth-child(1) { border-color: var(--sky); } .how div:nth-child(2) { border-color: var(--blue); }
@@ -148,16 +148,22 @@
 
     <section class="kpis" id="kpis"></section>
 
-    <section class="grid2">
-      <div class="card">
-        <h3>Strategy comparison</h3>
-        <div class="hint">Value vs. running the whole campus on the RT index. Flex value = energy avoided − compute value forgone + ancillary revenue. Hedge P&amp;L is reported separately.</div>
-        <table id="tbl"></table>
-      </div>
+    <section class="card" style="margin-bottom:16px">
+      <h3>Strategy comparison</h3>
+      <div class="hint">Value vs. running the whole campus on the RT index. Flex value = energy avoided − compute value forgone + ancillary revenue. The optimizer's day-ahead hedge P&amp;L is reported separately and not counted in flex value.</div>
+      <table id="tbl"></table>
+    </section>
+
+    <section class="grid2b">
       <div class="card">
         <h3>Cumulative flex value</h3>
         <div class="hint">Running total of flex value by strategy over the backtest window ($M).</div>
         <div class="chartbox"><canvas id="c-cum"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>SLA: curtailed hours vs. budget</h3>
+        <div class="hint">Curtailed hour-equivalents of the block per month (curtailed MWh ÷ block MW). Budget = min(curtailment budget, (1 − min throughput) × hours).</div>
+        <div class="chartbox"><canvas id="c-sla"></canvas></div>
       </div>
     </section>
 
@@ -171,21 +177,14 @@
       <div class="chartbox tall"><canvas id="c-alloc"></canvas></div>
     </section>
 
-    <section class="grid2b">
-      <div class="card">
-        <h3>SLA: curtailed hours vs. budget</h3>
-        <div class="hint">Curtailed hour-equivalents of the interruptible block per month (curtailed MWh ÷ block MW). Budget = min(curtailment budget, (1 − min throughput) × hours).</div>
-        <div class="chartbox"><canvas id="c-sla"></canvas></div>
-      </div>
+    <section class="grid2" style="grid-template-columns: 1fr 1.1fr">
       <div class="card">
         <h3>Which rule wins depends on compute value</h3>
         <div class="hint" id="sens-hint">Flex value by strategy as the value of interruptible compute changes (same window and SLA).</div>
         <div class="chartbox"><canvas id="c-sens"></canvas></div>
         <div class="progress"><i id="sens-bar"></i></div>
       </div>
-    </section>
-
-    <section class="card">
+      <div class="card">
       <h3>How the planner works</h3>
       <div class="hint">Everything on this screen is computed in your browser from the public ERCOT files; nothing is hard-coded.</div>
       <div class="how">
@@ -193,6 +192,7 @@
         <div><b>2 · Hourly CVaR LP</b>A linear program splits the block into planned-off, economic flex (curtail if RT &gt; threshold), REGUP / REGDN / RRS / ECRS / Non-Spin capacity and a day-ahead energy hedge, minimising expected cost + weight × CVaR (Rockafellar–Uryasev). Solved by a dependency-free simplex.</div>
         <div><b>3 · SLA as a price</b>The monthly curtailment budget becomes a Lagrange multiplier set from an empirical price quantile of the remaining budget, plus a chronological within-day reservation and a hard real-time guard that includes ramp-recovery hours.</div>
         <div><b>4 · Honest replay</b>Real-time settlement at actual LZ_WEST prices with ramp limits, deployments, and budget enforcement. The hindsight bound sees realised prices and ignores ramp limits, so it is an upper bound, not a target.</div>
+      </div>
       </div>
     </section>
 
@@ -215,6 +215,7 @@ Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
 Chart.defaults.font.size = 11.5;
 Chart.defaults.color = '#5B6B80';
 Chart.defaults.borderColor = '#EEF1F5';
+Chart.defaults.animation = false;
 
 const $ = (id) => document.getElementById(id);
 const fmtM = (x) => (x <= -5000 ? '−' : '') + '$' + (Math.abs(x) / 1e6).toFixed(2) + 'M';
