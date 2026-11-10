@@ -217,8 +217,8 @@ Chart.defaults.color = '#5B6B80';
 Chart.defaults.borderColor = '#EEF1F5';
 
 const $ = (id) => document.getElementById(id);
-const fmtM = (x) => (x < 0 ? '−' : '') + '$' + (Math.abs(x) / 1e6).toFixed(2) + 'M';
-const fmtK = (x) => (x < 0 ? '−' : '') + '$' + Math.round(Math.abs(x) / 1e3).toLocaleString() + 'k';
+const fmtM = (x) => (x <= -5000 ? '−' : '') + '$' + (Math.abs(x) / 1e6).toFixed(2) + 'M';
+const fmtK = (x) => (x <= -500 ? '−' : '') + '$' + Math.round(Math.abs(x) / 1e3).toLocaleString() + 'k';
 const pct = (x, d = 1) => (100 * x).toFixed(d) + '%';
 
 // ---- build parameter widgets ----
@@ -321,7 +321,7 @@ function render(R, ms) {
   const kpis = [
     { k: 'Flex value', v: fmtM(O.flexValue), d: `${isFinite(share) ? pct(share, 0) : '–'} of hindsight bound`, hl: true },
     { k: 'vs. best naive rule', v: (vsNaive >= 0 ? '+' : '') + fmtM(vsNaive), d: `best naive: ${fmtM(bestNaive)}` },
-    { k: 'Ancillary revenue', v: fmtM(O.asRev), d: `${pct(O.asRev / Math.max(1, O.flexValue), 0)} of flex value` },
+    { k: 'Ancillary revenue', v: fmtM(O.asRev), d: O.flexValue > 0 ? `${pct(Math.max(0, O.asRev) / O.flexValue, 0)} of flex value` : 'no positive flex value' },
     { k: 'Curtailed / month', v: O.curtailHEperMonth.toFixed(1) + ' h', d: `budget ${avgBudget.toFixed(1)} h · ${O.violationHE === 0 ? '0 SLA breaches' : O.violationHE.toFixed(1) + ' h over'}` },
     { k: 'Compute delivered', v: pct(O.computeDelivered, 2), d: `of interruptible MWh · floor ${pct(P.minThroughput, 1)}` },
     { k: 'Tail risk (CVaR95 day)', v: fmtM(O.cvarDailyCost), d: `<span class="${cvarCut >= 0 ? 'up' : 'dn'}">${cvarCut >= 0 ? '−' : '+'}${pct(Math.abs(cvarCut), 0)}</span> vs always-on · hedge ${fmtM(O.hedge)}` },
