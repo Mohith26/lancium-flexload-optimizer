@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flex Participation Planner · ERCOT data-center campus (concept)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Prompt:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #0E2547; --blue: #3E7CB1; --sky: #288CD2; --steel: #81A4CD; --mist: #DBE4EE;
+    --green: #41B93A; --orange: #F17300; --ink: #383838; --gray: #8F8F8F; --line: #E3E8EF; --bg: #F4F6F9;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font: 400 14px/1.5 Inter, system-ui, sans-serif; }
+  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+  /* sidebar */
+  aside { background: var(--navy); color: #fff; padding: 22px 20px 28px; position: sticky; top: 0; height: 100vh; overflow-y: auto; }
+  .brand { font: 600 15px Prompt, sans-serif; letter-spacing: .4px; display: flex; align-items: center; gap: 10px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 4px rgba(65,185,58,.18); }
+  .brand small { display: block; font: 500 11px Inter; color: var(--steel); letter-spacing: 0; }
+  .grp { margin-top: 22px; }
+  .grp h4 { margin: 0 0 10px; font: 600 11.5px Prompt, sans-serif; letter-spacing: 1.7px; text-transform: uppercase; color: var(--steel); }
+  .field { margin-bottom: 11px; }
+  .field label { display: flex; justify-content: space-between; font-size: 12.5px; color: #DCE6F2; margin-bottom: 4px; }
+  .field label b { font-weight: 600; color: #fff; font-variant-numeric: tabular-nums; }
+  input[type=range] { width: 100%; accent-color: var(--green); }
+  select { width: 100%; background: #16325C; color: #fff; border: 1px solid #2A4A78; border-radius: 6px; padding: 6px 8px; font: 500 12.5px Inter; }
+  .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .chip { font: 500 11.5px Inter; padding: 3px 8px; border-radius: 99px; border: 1px solid #2E5285; color: #CFE0F3; background: transparent; cursor: pointer; }
+  .chip.on, .chip:hover { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .svc { display: grid; grid-template-columns: 62px 1fr 38px; align-items: center; gap: 8px; font-size: 12px; color: #DCE6F2; margin-bottom: 6px; }
+  .svc b { text-align: right; color: #fff; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .note { font-size: 11.5px; color: #9FB6D3; line-height: 1.45; margin-top: 4px; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  /* main */
+  main { padding: 0 28px 40px; min-width: 0; }
+  .top { display: flex; align-items: center; justify-content: space-between; padding: 18px 0 16px; border-bottom: 1px solid var(--line); margin-bottom: 18px; }
+  .crumb { font: 600 11.5px Prompt, sans-serif; letter-spacing: 1.7px; text-transform: uppercase; color: var(--blue); }
+  h1 { margin: 2px 0 0; font: 600 24px Prompt, sans-serif; color: var(--navy); letter-spacing: .2px; }
+  .sub { color: #5B6B80; font-size: 13px; margin-top: 2px; }
+  .badges { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; justify-content: flex-end; max-width: 560px; }
+  .badge { font: 500 12px Inter; padding: 5px 10px; border-radius: 6px; background: #fff; border: 1px solid var(--line); color: #4A5A70; white-space: nowrap; }
+  .badge.live { color: #1F7A1A; border-color: #BFE5BC; background: #F1FAF0; }
+  .badge.live::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 6px; vertical-align: 1px; }
+  .badge.busy { color: #8A4A00; border-color: #F6D2AE; background: #FFF6EC; }
+  .badge.busy::before { background: var(--orange); }
+  .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  .kpi { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 14px 14px 12px; position: relative; overflow: hidden; }
+  .kpi::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: var(--mist); }
+  .kpi.hl::before { background: var(--green); }
+  .kpi .k { font: 600 10.5px Prompt, sans-serif; letter-spacing: 1.4px; text-transform: uppercase; color: var(--gray); }
+  .kpi .v { font: 600 24px Inter; color: var(--navy); margin-top: 4px; font-variant-numeric: tabular-nums; letter-spacing: -.3px; }
+  .kpi .d { font-size: 12px; color: #5B6B80; margin-top: 2px; }
+  .kpi .d .up { color: #1F8A19; font-weight: 600; } .kpi .d .dn { color: #C0392B; font-weight: 600; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; }
+  .card h3 { margin: 0; font: 600 15px Prompt, sans-serif; color: var(--navy); }
+  .card .hint { font-size: 12.5px; color: #66768A; margin: 2px 0 12px; }
+  .grid2 { display: grid; grid-template-columns: 1.25fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid2b { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12.8px; font-variant-numeric: tabular-nums; }
+  th { text-align: right; font: 600 10.5px Prompt, sans-serif; letter-spacing: 1.1px; text-transform: uppercase; color: var(--gray); padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  td { text-align: right; padding: 9px 8px; border-bottom: 1px solid #F0F3F7; white-space: nowrap; }
+  tr.opt td { background: #F3FAF2; font-weight: 600; color: var(--navy); }
+  tr.orc td { color: #6A7A8E; font-style: italic; }
+  .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
+  .neg { color: #C0392B; } .pos { color: #1F8A19; }
+  .chartbox { position: relative; height: 270px; }
+  .chartbox.tall { height: 300px; }
+  .chartbox.short { height: 170px; }
+  .dayhead { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .dayhead select { width: auto; background: #fff; color: var(--navy); border: 1px solid var(--line); font-weight: 600; }
+  .daystats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 10px 0 6px; }
+  .daystats div { background: var(--bg); border-radius: 8px; padding: 8px 10px; font-size: 12px; color: #5B6B80; }
+  .daystats b { display: block; font: 600 15px Inter; color: var(--navy); font-variant-numeric: tabular-nums; }
+  .how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .how div { border-top: 3px solid var(--mist); padding-top: 10px; font-size: 12.8px; color: #4A5A70; }
+  .how div b { display: block; font: 600 13px Prompt, sans-serif; color: var(--navy); margin-bottom: 4px; }
+  .how div:nth-child(1) { border-color: var(--sky); } .how div:nth-child(2) { border-color: var(--blue); }
+  .how div:nth-child(3) { border-color: var(--green); } .how div:nth-child(4) { border-color: var(--orange); }
+  footer { margin-top: 18px; font-size: 12px; color: #7A889A; display: flex; justify-content: space-between; gap: 20px; }
+  .progress { height: 3px; background: var(--mist); border-radius: 2px; overflow: hidden; margin-top: 8px; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--green); transition: width .2s; }
+  .err { color: #C0392B; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand"><span class="dot"></span><div>Campus Ops Console<small>Flex participation · concept screen</small></div></div>
+
+    <div class="grp"><h4>Campus</h4>
+      <div class="field"><label>Total campus load <b id="o-campus"></b></label><input id="campus" type="range" min="200" max="2000" step="50" value="1200"></div>
+      <div class="field"><label>Interruptible training block <b id="o-flex"></b></label><input id="flex" type="range" min="25" max="1000" step="25" value="300"></div>
+      <div class="note">Remaining load is treated as firm inference: always on, never offered.</div>
+    </div>
+
+    <div class="grp"><h4>Tenant SLA</h4>
+      <div class="field"><label>Value of interruptible compute <b id="o-value"></b></label><input id="value" type="range" min="20" max="1500" step="10" value="150">
+        <div class="chips" id="presets">
+          <button class="chip" data-v="60">Preemptible batch $60</button>
+          <button class="chip" data-v="150">Training $150</button>
+          <button class="chip" data-v="1000">Frontier training $1,000</button>
+        </div></div>
+      <div class="field"><label>Curtailment budget / month <b id="o-budget"></b></label><input id="budget" type="range" min="0" max="120" step="2" value="40"></div>
+      <div class="field"><label>Min. training throughput <b id="o-thru"></b></label><input id="thru" type="range" min="85" max="100" step="0.5" value="95"></div>
+      <div class="field"><label>Ramp limit (scheduler) <b id="o-ramp"></b></label><input id="ramp" type="range" min="25" max="1000" step="25" value="150"></div>
+    </div>
+
+    <div class="grp"><h4>Risk</h4>
+      <div class="row2">
+        <div class="field"><label>CVaR level <b id="o-alpha"></b></label><input id="alpha" type="range" min="0.8" max="0.99" step="0.01" value="0.95"></div>
+        <div class="field"><label>CVaR weight <b id="o-beta"></b></label><input id="beta" type="range" min="0" max="2" step="0.1" value="0.5"></div>
+      </div>
+      <div class="note">Objective per hour: E[cost] + weight × CVaR of cost over empirical DA→RT scenarios.</div>
+    </div>
+
+    <div class="grp"><h4>Ancillary eligibility (share of block)</h4>
+      <div id="caps"></div>
+    </div>
+
+    <div class="grp"><h4>Deployment proxy</h4>
+      <div id="deploy"></div>
+      <div class="note">Awarded RRS/ECRS/Non-Spin MW are assumed deployed (curtailed) in hours whose RT price exceeds these levels. ERCOT does not publish per-resource deployments; this is an explicit assumption.</div>
+    </div>
+
+    <div class="grp"><h4>Backtest window</h4>
+      <div class="row2"><select id="start"></select><select id="end"></select></div>
+      <div class="note">ERCOT LZ_WEST (Abilene area). Every hour is after the Dec 5 2025 RTC+B go-live.</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="top">
+      <div>
+        <div class="crumb">Energy · Flexible load · ERCOT</div>
+        <h1>Flex Participation Planner</h1>
+        <div class="sub">Hour-by-hour split of the interruptible block into run / economic curtailment / ancillary capacity, planned day-ahead and replayed against real ERCOT prices.</div>
+      </div>
+      <div class="badges">
+        <span class="badge" id="b-data">Loading ERCOT data…</span>
+        <span class="badge busy" id="b-status">Running backtest…</span>
+      </div>
+    </div>
+
+    <section class="kpis" id="kpis"></section>
+
+    <section class="grid2">
+      <div class="card">
+        <h3>Strategy comparison</h3>
+        <div class="hint">Value vs. running the whole campus on the RT index. Flex value = energy avoided − compute value forgone + ancillary revenue. Hedge P&amp;L is reported separately.</div>
+        <table id="tbl"></table>
+      </div>
+      <div class="card">
+        <h3>Cumulative flex value</h3>
+        <div class="hint">Running total of flex value by strategy over the backtest window ($M).</div>
+        <div class="chartbox"><canvas id="c-cum"></canvas></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-bottom:16px">
+      <div class="dayhead">
+        <div><h3>Operating day drill-down</h3><div class="hint" id="day-hint">What the optimizer committed day-ahead for each hour, and what actually happened in real time.</div></div>
+        <select id="day"></select>
+      </div>
+      <div class="daystats" id="daystats"></div>
+      <div class="chartbox short"><canvas id="c-price"></canvas></div>
+      <div class="chartbox tall"><canvas id="c-alloc"></canvas></div>
+    </section>
+
+    <section class="grid2b">
+      <div class="card">
+        <h3>SLA: curtailed hours vs. budget</h3>
+        <div class="hint">Curtailed hour-equivalents of the interruptible block per month (curtailed MWh ÷ block MW). Budget = min(curtailment budget, (1 − min throughput) × hours).</div>
+        <div class="chartbox"><canvas id="c-sla"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Which rule wins depends on compute value</h3>
+        <div class="hint" id="sens-hint">Flex value by strategy as the value of interruptible compute changes (same window and SLA).</div>
+        <div class="chartbox"><canvas id="c-sens"></canvas></div>
+        <div class="progress"><i id="sens-bar"></i></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>How the planner works</h3>
+      <div class="hint">Everything on this screen is computed in your browser from the public ERCOT files; nothing is hard-coded.</div>
+      <div class="how">
+        <div><b>1 · Scenarios</b>For each delivery hour, the RT−DA spreads at the same hour over a trailing 30-day window, lagged two days so the plan never sees prices it could not have known at DAM time.</div>
+        <div><b>2 · Hourly CVaR LP</b>A linear program splits the block into planned-off, economic flex (curtail if RT &gt; threshold), REGUP / REGDN / RRS / ECRS / Non-Spin capacity and a day-ahead energy hedge, minimising expected cost + weight × CVaR (Rockafellar–Uryasev). Solved by a dependency-free simplex.</div>
+        <div><b>3 · SLA as a price</b>The monthly curtailment budget becomes a Lagrange multiplier set from an empirical price quantile of the remaining budget, plus a chronological within-day reservation and a hard real-time guard that includes ramp-recovery hours.</div>
+        <div><b>4 · Honest replay</b>Real-time settlement at actual LZ_WEST prices with ramp limits, deployments, and budget enforcement. The hindsight bound sees realised prices and ignores ramp limits, so it is an upper bound, not a target.</div>
+      </div>
+    </section>
+
+    <footer>
+      <div id="src">Data: ERCOT MIS public reports 13060, 13061, 13091.</div>
+      <div>Unofficial concept demo by Mohith Gajjela. Not affiliated with Lancium. Real public ERCOT prices; synthetic campus parameters.</div>
+    </footer>
+  </main>
+</div>
+
+<script type="module">
+const SERV = ['REGUP', 'REGDN', 'RRS', 'ECRS', 'NSPIN'];
+const SERV_LABEL = { REGUP: 'Reg-Up', REGDN: 'Reg-Down', RRS: 'RRS', ECRS: 'ECRS', NSPIN: 'Non-Spin' };
+const COLORS = { alwaysOn: '#9C9C9C', priceCap: '#81A4CD', asMax: '#3E7CB1', optimizer: '#41B93A', oracle: '#0E2547' };
+const LABELS = { alwaysOn: 'Always on (RT index)', priceCap: 'Naive: curtail above break-even', asMax: 'Naive: max ancillary', optimizer: 'CVaR optimizer', oracle: 'Hindsight bound' };
+const capDefaults = { REGUP: 0.1, REGDN: 0.1, RRS: 0.3, ECRS: 0.3, NSPIN: 0.3 };
+const depDefaults = { RRS: 1000, ECRS: 400, NSPIN: 250 };
+
+Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+Chart.defaults.font.size = 11.5;
+Chart.defaults.color = '#5B6B80';
+Chart.defaults.borderColor = '#EEF1F5';
+
+const $ = (id) => document.getElementById(id);
+const fmtM = (x) => (x < 0 ? '−' : '') + '$' + (Math.abs(x) / 1e6).toFixed(2) + 'M';
+const fmtK = (x) => (x < 0 ? '−' : '') + '$' + Math.round(Math.abs(x) / 1e3).toLocaleString() + 'k';
+const pct = (x, d = 1) => (100 * x).toFixed(d) + '%';
+
+// ---- build parameter widgets ----
+$('caps').innerHTML = SERV.map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input type="range" id="cap-${s}" min="0" max="1" step="0.05" value="${capDefaults[s]}"><b id="o-cap-${s}"></b></div>`).join('');
+$('deploy').innerHTML = Object.keys(depDefaults).map((s) => `<div class="svc"><span>${SERV_LABEL[s]}</span><input type="range" id="dep-${s}" min="100" max="3000" step="50" value="${depDefaults[s]}"><b id="o-dep-${s}" style="font-size:11px"></b></div>`).join('');
+
+function readParams() {
+  const caps = {}, deployPrice = {};
+  for (const s of SERV) caps[s] = +$('cap-' + s).value;
+  for (const s of Object.keys(depDefaults)) deployPrice[s] = +$('dep-' + s).value;
+  let campus = +$('campus').value, flex = +$('flex').value;
+  if (flex >= campus) { flex = campus - 25; $('flex').value = flex; }
+  return {
+    campusMW: campus, flexMW: flex, computeValue: +$('value').value, budgetHours: +$('budget').value,
+    minThroughput: +$('thru').value / 100, rampMWh: +$('ramp').value, alpha: +$('alpha').value, beta: +$('beta').value,
+    caps, deployPrice,
+  };
+}
+function paintLabels(P) {
+  $('o-campus').textContent = P.campusMW.toLocaleString() + ' MW';
+  $('o-flex').textContent = P.flexMW.toLocaleString() + ' MW (' + Math.round(100 * P.flexMW / P.campusMW) + '%)';
+  $('o-value').textContent = '$' + P.computeValue.toLocaleString() + '/MWh';
+  $('o-budget').textContent = P.budgetHours + ' h';
+  $('o-thru').textContent = (P.minThroughput * 100).toFixed(1) + '%';
+  $('o-ramp').textContent = P.rampMWh + ' MW/h';
+  $('o-alpha').textContent = P.alpha.toFixed(2);
+  $('o-beta').textContent = P.beta.toFixed(1);
+  for (const s of SERV) $('o-cap-' + s).textContent = Math.round(P.caps[s] * 100) + '%';
+  for (const s of Object.keys(depDefaults)) $('o-dep-' + s).textContent = '$' + P.deployPrice[s];
+  document.querySelectorAll('#presets .chip').forEach((c) => c.classList.toggle('on', +c.dataset.v === P.computeValue));
+}
+
+// ---- worker plumbing ----
+const worker = new Worker(new URL('./src/worker.js', import.meta.url), { type: 'module' });
+let runId = 0, sensId = 0, meta = null, last = null;
+worker.onmessage = (ev) => {
+  const m = ev.data;
+  if (m.type === 'error') { $('b-status').className = 'badge'; $('b-status').innerHTML = '<span class="err">Error: ' + m.message + '</span>'; return; }
+  if (m.type === 'result' && m.id === runId) {
+    if (!meta) initWindow(m.meta);
+    meta = m.meta; last = m;
+    render(m.result, m.ms);
+    startSens();
+  }
+  if (m.type === 'sensProgress' && m.id === sensId) $('sens-bar').style.width = (100 * m.done / m.total) + '%';
+  if (m.type === 'sens' && m.id === sensId) renderSens(m.rows);
+};
+
+function initWindow(mt) {
+  const months = mt.months.slice(1); // the first month is scenario warm-up
+  const opt = (sel) => months.map((mo) => `<option value="${mo}">${new Date(mo + '-15').toLocaleString('en-US', { month: 'short', year: 'numeric' })}</option>`).join('');
+  $('start').innerHTML = opt(); $('end').innerHTML = opt();
+  $('start').value = months[0]; $('end').value = months[months.length - 1];
+  $('b-data').textContent = `ERCOT ${mt.zone} · ${mt.first} → ${mt.last} · public MIS data`;
+  $('src').textContent = `Data: ERCOT MIS public reports 13060 (DAM SPP), 13061 (RTM SPP, 15-min→hourly), 13091 (DAM MCPC): ${Object.values(mt.sources).join(', ')}.`;
+}
+
+function windowOpts() {
+  if (!$('start').value) return {};
+  let s = $('start').value, e = $('end').value;
+  if (e < s) { e = s; $('end').value = s; }
+  return { startDate: s + '-01', endDate: e + '-31' };
+}
+
+let timer = null;
+function schedule() {
+  const P = readParams(); paintLabels(P);
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    $('b-status').className = 'badge busy'; $('b-status').textContent = 'Running backtest…';
+    worker.postMessage({ type: 'run', id: ++runId, params: P, opts: windowOpts() });
+  }, 180);
+}
+document.querySelectorAll('aside input, aside select').forEach((el) => el.addEventListener('input', schedule));
+document.querySelectorAll('#presets .chip').forEach((c) => c.addEventListener('click', () => { $('value').value = c.dataset.v; schedule(); }));
+
+function startSens() {
+  $('sens-bar').style.width = '0%';
+  const P = readParams();
+  worker.postMessage({ type: 'sens', id: ++sensId, params: P, opts: { ...windowOpts(), values: [40, 80, 150, 250, 500, 1000] } });
+}
+
+// ---- rendering ----
+const charts = {};
+function chart(id, cfg) { if (charts[id]) charts[id].destroy(); charts[id] = new Chart($(id), cfg); return charts[id]; }
+
+function render(R, ms) {
+  const S = R.strategies, P = R.params;
+  const O = S.optimizer.totals, A = S.alwaysOn.totals, OR = S.oracle.totals;
+  const nHours = S.optimizer.hourly.length;
+  $('b-status').className = 'badge live';
+  $('b-status').textContent = `Backtest complete · ${nHours.toLocaleString()} hours · ${S.optimizer.daily.length} LP-planned days · ${(ms / 1000).toFixed(1)} s`;
+
+  const bestNaive = Math.max(S.priceCap.totals.flexValue, S.asMax.totals.flexValue);
+  const months = Math.max(1, S.optimizer.monthly.length);
+  const avgBudget = S.optimizer.monthly.reduce((a, m) => a + m.budget, 0) / months;
+  const cvarCut = 1 - O.cvarDailyCost / A.cvarDailyCost;
+  const share = OR.flexValue > 0 ? O.flexValue / OR.flexValue : NaN;
+  const vsNaive = O.flexValue - bestNaive;
+  const kpis = [
+    { k: 'Flex value', v: fmtM(O.flexValue), d: `${isFinite(share) ? pct(share, 0) : '–'} of hindsight bound`, hl: true },
+    { k: 'vs. best naive rule', v: (vsNaive >= 0 ? '+' : '') + fmtM(vsNaive), d: `best naive: ${fmtM(bestNaive)}` },
+    { k: 'Ancillary revenue', v: fmtM(O.asRev), d: `${pct(O.asRev / Math.max(1, O.flexValue), 0)} of flex value` },
+    { k: 'Curtailed / month', v: O.curtailHEperMonth.toFixed(1) + ' h', d: `budget ${avgBudget.toFixed(1)} h · ${O.violationHE === 0 ? '0 SLA breaches' : O.violationHE.toFixed(1) + ' h over'}` },
+    { k: 'Compute delivered', v: pct(O.computeDelivered, 2), d: `of interruptible MWh · floor ${pct(P.minThroughput, 1)}` },
+    { k: 'Tail risk (CVaR95 day)', v: fmtM(O.cvarDailyCost), d: `<span class="${cvarCut >= 0 ? 'up' : 'dn'}">${cvarCut >= 0 ? '−' : '+'}${pct(Math.abs(cvarCut), 0)}</span> vs always-on · hedge ${fmtM(O.hedge)}` },
+  ];
+  $('kpis').innerHTML = kpis.map((x) => `<div class="kpi ${x.hl ? 'hl' : ''}"><div class="k">${x.k}</div><div class="v">${x.v}</div><div class="d">${x.d}</div></div>`).join('');
+
+  // table
+  const order = ['alwaysOn', 'priceCap', 'asMax', 'optimizer', 'oracle'];
+  const money = (x) => `<span class="${x < -1 ? 'neg' : ''}">${fmtM(x)}</span>`;
+  $('tbl').innerHTML = `<tr><th>Strategy</th><th>Flex value</th><th>Ancillary</th><th>Curtail net</th><th>Hedge P&amp;L</th><th>Curt. h/mo</th><th>Compute</th><th>SLA over</th><th>CVaR95 day</th></tr>` +
+    order.map((k) => {
+      const T = S[k].totals;
+      return `<tr class="${k === 'optimizer' ? 'opt' : k === 'oracle' ? 'orc' : ''}"><td><span class="sw" style="background:${COLORS[k]}"></span>${LABELS[k]}</td>
+        <td>${money(T.flexValue)}</td><td>${fmtM(T.asRev)}</td><td>${money(T.avoided - T.lost)}</td><td>${k === 'optimizer' ? money(T.hedge) : '–'}</td>
+        <td>${T.curtailHEperMonth.toFixed(1)}</td><td>${pct(T.computeDelivered, 2)}</td><td>${T.violationHE > 0 ? '<span class="neg">' + T.violationHE.toFixed(1) + ' h</span>' : '0'}</td><td>${fmtM(T.cvarDailyCost)}</td></tr>`;
+    }).join('');
+
+  // cumulative flex value (daily): benefit minus hedge for the optimizer
+  const labels = S.optimizer.daily.map((d) => d.date);
+  const hedgeByDay = {};
+  for (const h of S.optimizer.hourly) hedgeByDay[h.date] = (hedgeByDay[h.date] || 0) + h.hedge;
+  const ds = ['priceCap', 'asMax', 'optimizer', 'oracle'].map((k) => {
+    let acc = 0;
+    const data = S[k].daily.map((d) => { acc += d.benefit - (k === 'optimizer' ? (hedgeByDay[d.date] || 0) : 0); return acc / 1e6; });
+    return { label: LABELS[k], data, borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.6 : 1.6, pointRadius: 0, borderDash: k === 'oracle' ? [5, 4] : [], tension: 0.15 };
+  });
+  chart('c-cum', { type: 'line', data: { labels, datasets: ds }, options: {
+    maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
+    scales: { x: { ticks: { maxTicksLimit: 9, callback: function (v) { const l = this.getLabelForValue(v); return l.slice(5); } }, grid: { display: false } }, y: { title: { display: true, text: 'Cumulative flex value ($M)' } } } } });
+
+  // day picker: default to the highest-RT day in the window
+  const days = [...new Set(S.optimizer.hourly.map((h) => h.date))];
+  let maxDay = days[0], maxRt = -Infinity;
+  for (const h of S.optimizer.hourly) if (h.rt > maxRt) { maxRt = h.rt; maxDay = h.date; }
+  const prev = $('day').value;
+  $('day').innerHTML = days.map((d) => `<option value="${d}">${d}${d === maxDay ? '  (peak RT)' : ''}</option>`).join('');
+  $('day').value = days.includes(prev) ? prev : maxDay;
+  renderDay();
+
+  // SLA chart
+  const mlabels = S.optimizer.monthly.map((m) => new Date(m.key + '-15').toLocaleString('en-US', { month: 'short' }));
+  chart('c-sla', { type: 'bar', data: { labels: mlabels, datasets: [
+    { label: LABELS.priceCap, data: S.priceCap.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.priceCap, borderRadius: 3 },
+    { label: LABELS.asMax, data: S.asMax.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.asMax, borderRadius: 3 },
+    { label: LABELS.optimizer, data: S.optimizer.monthly.map((m) => m.curtailHE), backgroundColor: COLORS.optimizer, borderRadius: 3 },
+    { type: 'line', label: 'Monthly budget', data: S.optimizer.monthly.map((m) => m.budget), borderColor: COLORS.alwaysOn ? '#F17300' : '#F17300', borderWidth: 2, pointRadius: 3, stepped: 'middle', fill: false },
+  ] }, options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(1)} h` } } },
+    scales: { x: { grid: { display: false } }, y: { beginAtZero: true, title: { display: true, text: 'Curtailed hour-equivalents' } } } } });
+}
+
+function renderDay() {
+  if (!last) return;
+  const R = last.result, F = R.params.flexMW;
+  const hs = R.strategies.optimizer.hourly.filter((h) => h.date === $('day').value);
+  const lab = hs.map((h) => 'HE' + String(h.he).padStart(2, '0'));
+  const tau = hs.map((h) => (isFinite(h.plan.tau) ? h.plan.tau : null));
+  chart('c-price', { type: 'line', data: { labels: lab, datasets: [
+    { label: 'RT price (LZ_WEST, hourly avg)', data: hs.map((h) => h.rt), borderColor: '#F17300', backgroundColor: '#F17300', borderWidth: 2, pointRadius: 2, tension: 0.2 },
+    { label: 'DA price', data: hs.map((h) => h.da), borderColor: '#3E7CB1', backgroundColor: '#3E7CB1', borderWidth: 1.6, pointRadius: 0, borderDash: [4, 3] },
+    { label: 'Curtail threshold (value + λ)', data: tau, borderColor: '#0E2547', borderWidth: 1, pointRadius: 0, borderDash: [2, 3], stepped: true },
+  ] }, options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}/MWh` } } },
+    scales: { x: { grid: { display: false } }, y: { title: { display: true, text: '$/MWh' } } } } });
+
+  const stack = (fn) => hs.map((h) => +(fn(h) * F).toFixed(2));
+  const ups = ['REGUP', 'RRS', 'ECRS', 'NSPIN'];
+  const svcColor = { REGUP: '#288CD2', RRS: '#0E2547', ECRS: '#3E7CB1', NSPIN: '#81A4CD' };
+  const datasets = [
+    { label: 'Actual consumption', type: 'line', data: stack((h) => h.y), borderColor: '#F17300', backgroundColor: '#F17300', borderWidth: 2.2, pointRadius: 2.5, stepped: 'middle', order: 0 },
+    { label: 'Run (no offer)', data: stack((h) => Math.max(0, 1 - h.plan.p - h.plan.e - ups.reduce((a, k) => a + h.plan.a[k], 0))), backgroundColor: '#DBE4EE', stack: 's', order: 1 },
+    { label: 'Economic flex', data: stack((h) => h.plan.e), backgroundColor: '#41B93A', stack: 's', order: 1 },
+    ...ups.map((k) => ({ label: SERV_LABEL[k] + ' capacity', data: stack((h) => h.plan.a[k]), backgroundColor: svcColor[k], stack: 's', order: 1 })),
+    { label: 'Planned off', data: stack((h) => h.plan.p), backgroundColor: 'rgba(143,143,143,.35)', stack: 's', order: 1 },
+  ];
+  chart('c-alloc', { type: 'bar', data: { labels: lab, datasets }, options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { position: 'right', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)} MW` } } },
+    scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, min: 0, max: Math.ceil(F * 1.02), title: { display: true, text: 'Interruptible block (MW)' } } } } });
+
+  const sum = (fn) => hs.reduce((a, h) => a + fn(h), 0);
+  const curtMWh = sum((h) => h.curtail) * F;
+  const lam = hs.length ? hs[0].plan.lambda : 0;
+  $('daystats').innerHTML = [
+    ['Flex value (day)', fmtK(sum((h) => h.avoided - h.lost + h.asRev))],
+    ['Ancillary revenue', fmtK(sum((h) => h.asRev))],
+    ['Curtailed', Math.round(curtMWh).toLocaleString() + ' MWh'],
+    ['Peak RT price', '$' + Math.max(...hs.map((h) => h.rt)).toFixed(0) + '/MWh'],
+    ['Budget price λ', '$' + lam.toFixed(0) + '/MWh'],
+  ].map(([a, b]) => `<div>${a}<b>${b}</b></div>`).join('');
+}
+$('day').addEventListener('change', renderDay);
+
+function renderSens(rows) {
+  const ks = ['priceCap', 'asMax', 'optimizer', 'oracle'];
+  chart('c-sens', { type: 'line', data: { labels: rows.map((r) => '$' + r.v), datasets: ks.map((k) => ({
+    label: LABELS[k], data: rows.map((r) => r[k] / 1e6), borderColor: COLORS[k], backgroundColor: COLORS[k], borderWidth: k === 'optimizer' ? 2.6 : 1.6, pointRadius: 3, borderDash: k === 'oracle' ? [5, 4] : [] })) },
+    options: { maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10 } }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: $${c.parsed.y.toFixed(2)}M` } } },
+      scales: { x: { title: { display: true, text: 'Value of interruptible compute ($/MWh)' }, grid: { display: false } }, y: { title: { display: true, text: 'Flex value ($M)' } } } } });
+  const wins = rows.filter((r) => r.optimizer >= Math.max(r.priceCap, r.asMax) - 1).length;
+  $('sens-hint').textContent = `Flex value by strategy as the value of interruptible compute changes. The optimizer matches or beats both naive rules at ${wins} of ${rows.length} compute values.`;
+}
+
+schedule();
+</script>
+</body>
+</html>
